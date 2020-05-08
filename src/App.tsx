@@ -63,7 +63,7 @@ const FixedTableBody: React.FC<{ scrollTop: number }> = ({
   scrollTop,
   children,
 }) => {
-  return <tbody style={{ top: `${scrollTop * -1}px` }}>{children}</tbody>;
+  return <tbody style={{ transform: `translateY(${scrollTop * -1}px)` }}>{children}</tbody>;
 };
 
 const TableBodyWithRef: React.FC<{ handleScroll: Function }> = ({
