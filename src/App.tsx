@@ -5,8 +5,9 @@ import "./App.css";
 
 const Wrapper = styled.div`
   display: flex;
+  padding: 24px;
   width: 900px;
-  height: 500px;
+  height: 501px;
   overflow-x: hidden;
   overflow-y: scroll;
   position: relative;
@@ -14,17 +15,37 @@ const Wrapper = styled.div`
 
 const FixedTable = styled.table`
   width: 200px;
-  height: 500px;
+  height: 501px;
   overflow-y: hidden;
   display: block;
   position: absolute;
-  & th {
+  border-top: 1px solid #ccc;
+  & thead {
+    width: 200px;
+    display: block;
+    position: absolute;
+    z-index: 1;
+  }
+  & tr {
     width: 200px;
     height: 50px;
+    display: block;
+  }
+  & th, & td {
+    width: 198px;
+    height: 49px;
+    padding: 0;
+    background-color: #fff;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    display: block;
   }
   & tbody {
     position: relative;
     display: block;
+    width: 200px;
+    top: 50px;
   }
 `;
 
@@ -45,17 +66,28 @@ const StyledTable = styled.table`
   }
   & tbody {
     position: relative;
-    top: 50px;
+    top: 51px;
     height: 450px;
     overflow-y: scroll;
   }
+  & tr {
+    display: flex;
+  }
   & th,
   & td {
-    width: 200px;
-    height: 50px;
+    background-color: #fff;
+    width: 199px;
+    height: 49px;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    padding: 0;
+    display: block;
   }
   & thead th {
-    text-align: left;
+    border-top: 1px solid #ccc;
+    height: 49px;
+    display: block;
+    padding: 0;
   }
 `;
 
@@ -89,7 +121,7 @@ function App() {
         <FixedTable>
           <thead>
             <tr>
-              <th />
+              <th style={{ zIndex: 1}} />
             </tr>
           </thead>
           <FixedTableBody scrollTop={scrollTop}>
@@ -105,7 +137,7 @@ function App() {
         </FixedTable>
         <StyledTable>
           <thead>
-            <tr>
+            <tr style={{ display: 'flex', width: '4000px'}}>
               {Array.from(new Array(19)).map((v, i) => (
                 <th key={i.toString()}>{`header ${i}`}</th>
               ))}
