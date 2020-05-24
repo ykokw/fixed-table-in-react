@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
-import debounce from "lodash/debounce";
 import "./App.css";
 
 const Wrapper = styled.div`
@@ -31,7 +30,8 @@ const FixedTable = styled.table`
     height: 50px;
     display: block;
   }
-  & th, & td {
+  & th,
+  & td {
     width: 198px;
     height: 49px;
     padding: 0;
@@ -95,8 +95,14 @@ const FixedTableBody: React.FC<{ scrollTop: number }> = ({
   scrollTop,
   children,
 }) => {
-  return <tbody style={{ transform: `translateY(${scrollTop * -1}px)` }}>{children}</tbody>;
+  return (
+    <tbody style={{ transform: `translateY(${scrollTop * -1}px)` }}>
+      {children}
+    </tbody>
+  );
 };
+
+let isScrolling = false;
 
 const TableBodyWithRef: React.FC<{ handleScroll: Function }> = ({
   handleScroll,
@@ -107,7 +113,19 @@ const TableBodyWithRef: React.FC<{ handleScroll: Function }> = ({
     tbodyRef && tbodyRef.current && handleScroll(tbodyRef.current.scrollTop);
   };
   return (
-    <tbody ref={tbodyRef} onScroll={debounce(onScroll, 10)} className="TableBodyWithRef">
+    <tbody
+      ref={tbodyRef}
+      onScroll={() => {
+        if (!isScrolling) {
+          window.requestAnimationFrame(() => {
+            onScroll();
+            isScrolling = false;
+          })
+        }
+        isScrolling = true;
+      }}
+      className="TableBodyWithRef"
+    >
       {children}
     </tbody>
   );
@@ -121,7 +139,7 @@ function App() {
         <FixedTable>
           <thead>
             <tr>
-              <th style={{ zIndex: 1}} />
+              <th style={{ zIndex: 1 }} />
             </tr>
           </thead>
           <FixedTableBody scrollTop={scrollTop}>
@@ -137,7 +155,7 @@ function App() {
         </FixedTable>
         <StyledTable>
           <thead>
-            <tr style={{ display: 'flex', width: '4000px'}}>
+            <tr style={{ display: "flex", width: "4000px" }}>
               {Array.from(new Array(19)).map((v, i) => (
                 <th key={i.toString()}>{`header ${i}`}</th>
               ))}
