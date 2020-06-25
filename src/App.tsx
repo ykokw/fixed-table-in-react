@@ -1,184 +1,148 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import styled from "styled-components";
+import {
+  FixedSizeGrid,
+  FixedSizeGridProps,
+  GridChildComponentProps,
+} from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import faker from "faker";
+
 import "./App.css";
 
+const COLUMN_COUNT = 1000;
+const ROW_COUNT = 1000;
+const COLUMN_WIDTH = 150;
+const ROW_HEIGHT = 50;
+
 const Wrapper = styled.div`
-  display: flex;
-  padding: 24px;
-  width: 900px;
-  height: 501px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  position: relative;
-`;
-
-const FixedTable = styled.table`
-  width: 200px;
-  height: 501px;
-  overflow-y: hidden;
-  display: block;
+  width: 80%;
+  height: 80%;
+  margin: 32px;
   position: absolute;
-  border-top: 1px solid #ccc;
-  & thead {
-    width: 200px;
-    display: block;
-    position: absolute;
-    z-index: 1;
-  }
-  & tr {
-    width: 200px;
-    height: 50px;
-    display: block;
-  }
-  & th,
-  & td {
-    width: 198px;
-    height: 49px;
-    padding: 0;
-    background-color: #fff;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    display: block;
-  }
-  & tbody {
-    position: relative;
-    display: block;
-    width: 200px;
-    top: 50px;
-  }
 `;
 
-const StyledTable = styled.table`
-  table-layout: fixed;
-  width: 100%;
-  position: relative;
-  left: 200px;
-  display: block;
-  overflow-x: scroll;
-  & thead,
-  & tbody {
-    display: block;
-    width: 4000px;
-  }
-  & thead {
-    position: absolute;
-  }
-  & tbody {
-    position: relative;
-    top: 51px;
-    height: 450px;
-    overflow-y: scroll;
-  }
-  & tr {
-    display: flex;
-  }
-  & th,
-  & td {
-    background-color: #fff;
-    width: 199px;
-    height: 49px;
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    padding: 0;
-    display: block;
-  }
-  & thead th {
-    border-top: 1px solid #ccc;
-    height: 49px;
-    display: block;
-    padding: 0;
-  }
-`;
+const Grid: React.FC<{
+  columnIndex: number;
+  rowIndex: number;
+  style: React.CSSProperties;
+}> = ({ columnIndex, rowIndex, style }) => (
+  <div
+    style={{
+      ...style,
+      border: "1px solid #ccc",
+      boxSizing: "border-box",
+      borderTop: "none",
+      borderRight: "none",
+      backgroundColor: "#fff",
+    }}
+  >
+    {`rowIndex: ${rowIndex} / columnIndex: ${columnIndex}`}
+  </div>
+);
 
-const FixedTableBody: React.FC<{ scrollTop: number }> = ({
-  scrollTop,
-  children,
+const ItemWrapper: React.FC<GridChildComponentProps> = ({
+  columnIndex,
+  rowIndex,
+  style,
+  data,
 }) => {
+  const { ItemRenderer } = data;
+  // avoid render for fixed row header and columns
+  if (columnIndex === 0 || rowIndex === 0) return null;
   return (
-    <tbody style={{ transform: `translateY(${scrollTop * -1}px)` }}>
-      {children}
-    </tbody>
+    <ItemRenderer columnIndex={columnIndex} rowIndex={rowIndex} style={style} />
   );
 };
 
-let isScrolling = false;
+const StickyGrid: React.FC<FixedSizeGridProps> = ({ children, ...rest }) => (
+  <FixedSizeGrid itemData={{ ItemRenderer: children }} {...rest}>
+    {ItemWrapper}
+  </FixedSizeGrid>
+);
 
-const TableBodyWithRef: React.FC<{ handleScroll: Function }> = ({
-  handleScroll,
-  children,
-}) => {
-  const tbodyRef = useRef<HTMLTableSectionElement>(null);
-  const onScroll = () => {
-    tbodyRef && tbodyRef.current && handleScroll(tbodyRef.current.scrollTop);
-  };
+const StickyRow: React.FC = () => (
+  <div style={{ display: "flex", position: "sticky", top: 0, zIndex: 10 }}>
+    {[...Array(COLUMN_COUNT)].map((_, i) => (
+      <div
+        key={faker.random.uuid()}
+        style={{
+          width: COLUMN_WIDTH,
+          height: ROW_HEIGHT,
+          border: "1px solid #ccc",
+          borderRight: "none",
+          boxSizing: "border-box",
+          backgroundColor: "#fff",
+          position: i === 0 ? 'sticky' : 'static',
+          left: i === 0 ? 0 : 'unset',
+        }}
+      >{`rowIndex: 0 / columnIndex: ${i}`}</div>
+    ))}
+  </div>
+);
+
+const StickyColumn: React.FC = () => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      position: "sticky",
+      left: 0,
+      width: `${COLUMN_WIDTH}px`,
+      zIndex: 5,
+    }}
+  >
+    {[...Array(ROW_COUNT)].map(
+      (_, i) =>
+        i !== 0 && (
+          <div
+            key={faker.random.uuid()}
+            style={{
+              width: COLUMN_WIDTH,
+              height: ROW_HEIGHT,
+              border: "1px solid #ccc",
+              borderTop: "none",
+              borderRight: "none",
+              boxSizing: "border-box",
+              backgroundColor: "#fff",
+            }}
+          >{`rowIndex: ${i} / columnIndex: 0`}</div>
+        )
+    )}
+  </div>
+);
+
+const InnerElement = React.forwardRef<HTMLDivElement>(function InnerElement(
+  { children, ...rest },
+  ref
+) {
   return (
-    <tbody
-      ref={tbodyRef}
-      onScroll={() => {
-        if (!isScrolling) {
-          window.requestAnimationFrame(() => {
-            onScroll();
-            isScrolling = false;
-          })
-        }
-        isScrolling = true;
-      }}
-      className="TableBodyWithRef"
-    >
+    <div ref={ref} {...rest}>
+      <StickyRow />
+      <StickyColumn />
       {children}
-    </tbody>
-  );
-};
-
-function App() {
-  const [scrollTop, setScrollTop] = useState(0);
-  return (
-    <div className="App">
-      <Wrapper>
-        <FixedTable>
-          <thead>
-            <tr>
-              <th style={{ zIndex: 1 }} />
-            </tr>
-          </thead>
-          <FixedTableBody scrollTop={scrollTop}>
-            {Array.from(new Array(29)).map((v, rowIndex) => (
-              <tr key={`rowIndex-${rowIndex}`}>
-                <th
-                  className="fixed"
-                  key={rowIndex.toString()}
-                >{`row header: ${rowIndex} row`}</th>
-              </tr>
-            ))}
-          </FixedTableBody>
-        </FixedTable>
-        <StyledTable>
-          <thead>
-            <tr style={{ display: "flex", width: "4000px" }}>
-              {Array.from(new Array(19)).map((v, i) => (
-                <th key={i.toString()}>{`header ${i}`}</th>
-              ))}
-            </tr>
-          </thead>
-          <TableBodyWithRef
-            handleScroll={(scrollTop: number) => setScrollTop(scrollTop)}
-          >
-            {Array.from(new Array(29)).map((v, rowIndex) => (
-              <tr key={`rowIndex-${rowIndex}`}>
-                {Array.from(new Array(19)).map((v, i) => (
-                  <td
-                    className="dataCell"
-                    key={i.toString()}
-                  >{`row ${rowIndex} /  data ${i}`}</td>
-                ))}
-              </tr>
-            ))}
-          </TableBodyWithRef>
-        </StyledTable>
-      </Wrapper>
     </div>
   );
-}
+});
+
+const App: React.FC = () => (
+  <Wrapper>
+    <AutoSizer>
+      {({ width, height }) => (
+        <StickyGrid
+          innerElementType={InnerElement}
+          width={width}
+          height={height}
+          columnCount={COLUMN_COUNT}
+          rowCount={ROW_COUNT}
+          columnWidth={COLUMN_WIDTH}
+          rowHeight={ROW_HEIGHT}
+        >
+          {Grid}
+        </StickyGrid>
+      )}
+    </AutoSizer>
+  </Wrapper>
+);
 
 export default App;
