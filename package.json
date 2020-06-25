@@ -17,6 +17,8 @@
     "react-app-polyfill": "^1.0.6",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
+    "react-virtualized-auto-sizer": "^1.0.2",
+    "react-window": "^1.8.5",
     "styled-components": "^5.1.0",
     "typescript": "~3.7.2"
   },
@@ -40,5 +42,9 @@
       "not dead",
       "not op_mini all"
     ]
+  },
+  "devDependencies": {
+    "@types/react-virtualized-auto-sizer": "^1.0.0",
+    "@types/react-window": "^1.8.2"
   }
 }
